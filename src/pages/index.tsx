@@ -2,10 +2,12 @@ import { GetStaticProps } from 'next';
 
 import Prismic from '@prismicio/client';
 import Link from 'next/link';
+import { FiCalendar, FiUser } from 'react-icons/fi';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import Header from '../components/Header';
 
 interface Post {
   uid?: string;
@@ -29,22 +31,29 @@ interface HomeProps {
 export default function Home({ postsPagination }: HomeProps) {
   return (
     <>
-      <h1>Home</h1>
-      <main>
-        <div>
+      <Header />
+      <main className={styles.container}>
+        <div className={styles.posts}>
           {postsPagination.results.map((post: Post) => (
-            <Link href={`/posts/${post.uid}`}>
-              <a key={post.uid}>
-                <strong>{post.data.title}</strong>
+            <Link key={post.uid} href={`/post/${post.uid}`}>
+              <a>
+                <h2>{post.data.title}</h2>
                 <p>{post.data.subtitle}</p>
                 <div>
-                  <time>{post.first_publication_date}</time>
-                  <span>{post.data.author}</span>
+                  <time>
+                    <FiCalendar />
+                    {post.first_publication_date}
+                  </time>
+                  <span>
+                    <FiUser />
+                    {post.data.author}
+                  </span>
                 </div>
               </a>
             </Link>
           ))}
         </div>
+        <button>Carregar mais posts</button>
       </main>
     </>
   );
