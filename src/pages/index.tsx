@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -31,12 +32,13 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
+  const [posts, setPosts] = useState<PostPagination>(postsPagination);
   return (
     <>
       <Header />
       <main className={styles.container}>
         <div className={styles.posts}>
-          {postsPagination.results.map((post: Post) => (
+          {posts.results.map((post: Post) => (
             <Link key={post.uid} href={`/post/${post.uid}`}>
               <a>
                 <h2>{post.data.title}</h2>
@@ -61,7 +63,23 @@ export default function Home({ postsPagination }: HomeProps) {
             </Link>
           ))}
         </div>
-        {postsPagination.next_page && <button>Carregar mais posts</button>}
+        {postsPagination.next_page && (
+          <button
+            onClick={() => {
+              fetch(postsPagination.next_page)
+                .then(response => response.json())
+                .then(data => {
+                  const newPosts = {
+                    ...data,
+                    results: [...data.results, ...posts.results],
+                  };
+                  setPosts(newPosts);
+                });
+            }}
+          >
+            Carregar mais posts
+          </button>
+        )}
       </main>
     </>
   );
@@ -81,9 +99,11 @@ export const getStaticProps: GetStaticProps = async () => {
         'post.heading',
         'post.body',
       ],
-      pageSize: 20,
+      pageSize: 1,
     }
   );
+
+  console.log(postsPagination);
 
   return { props: { postsPagination } };
 };
