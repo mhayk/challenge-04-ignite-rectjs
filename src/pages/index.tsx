@@ -3,6 +3,8 @@ import { GetStaticProps } from 'next';
 import Prismic from '@prismicio/client';
 import Link from 'next/link';
 import { FiCalendar, FiUser } from 'react-icons/fi';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -42,7 +44,13 @@ export default function Home({ postsPagination }: HomeProps) {
                 <div>
                   <time>
                     <FiCalendar />
-                    {post.first_publication_date}
+                    {format(
+                      new Date(post.first_publication_date),
+                      'd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
                   </time>
                   <span>
                     <FiUser />
@@ -53,7 +61,7 @@ export default function Home({ postsPagination }: HomeProps) {
             </Link>
           ))}
         </div>
-        <button>Carregar mais posts</button>
+        {postsPagination.next_page && <button>Carregar mais posts</button>}
       </main>
     </>
   );
@@ -62,7 +70,7 @@ export default function Home({ postsPagination }: HomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
 
-  const postsResponse = await prismic.query(
+  const postsPagination = await prismic.query(
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: [
@@ -76,8 +84,6 @@ export const getStaticProps: GetStaticProps = async () => {
       pageSize: 20,
     }
   );
-
-  const postsPagination = postsResponse;
 
   return { props: { postsPagination } };
 };
